@@ -1,0 +1,19 @@
+{
+  "hosting": [
+    {
+      "target": "pruebas",
+      "public": "dist/pruebas",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

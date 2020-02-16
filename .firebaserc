@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "pruebas-354cc": {
+      "hosting": {
+        "pruebas": [
+          "pruebas-354cc"
+        ]
+      }
+    }
+  }
+}
