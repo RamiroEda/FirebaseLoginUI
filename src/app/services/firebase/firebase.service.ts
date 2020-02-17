@@ -7,14 +7,18 @@ import { environment } from 'src/environments/environment';
 })
 export class FirebaseService {
   firebase : firebase.app.App;
-  private onAuthChangeFunction : (user :firebase.User) => any = (user :firebase.User)=>{};
+  private authChange : (user : firebase.User) => void;
 
   constructor() {
     this.firebase = firebase.initializeApp(environment.firebase);
-    this.firebase.auth().onAuthStateChanged(this.onAuthChangeFunction);
+    
   }
 
-  onAuthChange(lambda : (user :firebase.User) => any){
-    this.onAuthChangeFunction = lambda;
+  setOnAuthChangeListener(fun : (user : firebase.User) => void){
+    this.firebase.auth().onAuthStateChanged(fun);
+  }
+
+  get user() : firebase.User | null{
+    return this.firebase.auth().currentUser
   }
 }
