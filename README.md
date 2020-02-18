@@ -1,4 +1,6 @@
-# Pruebas
+# FirebaseLoginUI
+
+Este proyecto permite a un usuario registrado poder aplicar el filtro Grayscale a las fotos que sube a la aplicación web.
 
 Este proyecto fue generado por [Angular CLI](https://github.com/angular/angular-cli) versión 9.0.2.
 
@@ -30,6 +32,9 @@ Correr `ng deploy` para desplegar el proyecto en Firebase.
 | Controlador | `src/app/components/index/index.component.ts`  |
 | Estilos     | `src/app/components/index/index.component.scss`|
 
+Al empezar esta página se descarga la información del usuario desde el método `initAll()`. Si el usuario inició sesión desde Google se reemplazará su nombre y foto de perfil por las de Google en vez de usar el nombre por defecto de la base de datos.
+
+Al seleccionar un archivo se ejecutará el método `uploadFile()` que mostrará la imagen y esperará a que la función `applyFilter` transforme la imagen a Grayscale después de subirse.
 
 ## Rutas
 | Elemento    | Directorio                       |
