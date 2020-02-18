@@ -1,27 +1,63 @@
-# Pruebas
+# FirebaseLoginUI
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.0.2.
+Este proyecto permite a un usuario registrado poder aplicar el filtro Grayscale a las fotos que sube a la aplicación web.
 
-## Development server
+Este proyecto fue generado por [Angular CLI](https://github.com/angular/angular-cli) versión 9.0.2.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## [DEMO](https://pruebas-354cc.firebaseapp.com/)
 
-## Code scaffolding
+## Servidor de desarrollo
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Correr `ng serve` para correr un servidor de desarrollo. Para acceder abrir `http://localhost:4200/` en el navegador.
 
-## Build
+## Subir a Firebase
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Correr `ng deploy` para desplegar el proyecto en Firebase.
 
-## Running unit tests
+## Componentes
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Login
+| Elemento    | Directorio                                     |
+|-------------|------------------------------------------------|
+| Directorio  | `src/app/components/login`                     |
+| Vista       | `src/app/components/login/login.component.html`|  
+| Controlador | `src/app/components/login/login.component.ts`  |
+| Estilos     | `src/app/components/login/login.component.scss`|
 
-## Running end-to-end tests
+### Index
+| Elemento    | Directorio                                     |
+|-------------|------------------------------------------------|
+| Directorio  | `src/app/components/index`                     |
+| Vista       | `src/app/components/index/index.component.html`|  
+| Controlador | `src/app/components/index/index.component.ts`  |
+| Estilos     | `src/app/components/index/index.component.scss`|
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Al empezar esta página se descarga la información del usuario desde el método `initAll()`. Si el usuario inició sesión desde Google se reemplazará su nombre y foto de perfil por las de Google en vez de usar el nombre por defecto de la base de datos.
 
-## Further help
+Al seleccionar un archivo se ejecutará el método `uploadFile()` que mostrará la imagen y esperará a que la función `applyFilter` transforme la imagen a Grayscale después de subirse.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+## Rutas
+| Elemento    | Directorio                       |
+|-------------|----------------------------------|
+| Directorio  | `src/app/app-routing.module.ts`  |
+
+
+| Elemento    | Ruta      | Condiciones                                                 |
+|-------------|-----------|-------------------------------------------------------------|
+| Login       | `/login`  | No tener una sesión iniciada. Sino, se redirecciona a Index |
+| Index       | `/index`  | Tener una sesión iniciada. Sino, se redirecciona a Login    |
+
+## Modelos
+
+### UserInfo
+| Elemento    | Directorio                       |
+|-------------|----------------------------------|
+| Directorio  | `src/app/models/user-info.ts`    |
+
+```tsx
+export interface UserInfo {
+    name: string,
+    imageUrl: string,
+    backgroundImage: string
+}
+```
