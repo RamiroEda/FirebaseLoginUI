@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import * as firebaseui from 'firebaseui';
-import { auth, User } from 'firebase';
-import { FirebaseService } from 'src/app/services/firebase/firebase.service';
-import { Router } from '@angular/router';
+import * as firebase from 'firebase';
 
 @Component({
   selector: 'app-login',
@@ -16,26 +14,15 @@ import { Router } from '@angular/router';
 export class LoginComponent implements OnInit {
   ui : firebaseui.auth.AuthUI;
 
-  constructor(private firebaseService : FirebaseService, private router : Router) {
-    this.ui = new firebaseui.auth.AuthUI(firebaseService.firebase.auth());
-    firebaseService.setOnAuthChangeListener((user : User) => {
-      if(user){
-        router.navigateByUrl("/index");
-      }
-    });
-
-    console.log(firebaseService.firebase.auth().currentUser);
-
-    if(firebaseService.firebase.auth().currentUser){
-      router.navigateByUrl("/index");
-    }
+  constructor() {
+    this.ui = new firebaseui.auth.AuthUI(firebase.auth());
   }
 
   ngOnInit(): void {
     this.ui.start("#login-container", {
       signInOptions: [
-        auth.EmailAuthProvider.PROVIDER_ID,
-        auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
         firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
       ],
       signInSuccessUrl: '/index'

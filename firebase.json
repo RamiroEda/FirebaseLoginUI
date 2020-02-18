@@ -3,6 +3,7 @@
     {
       "target": "pruebas",
       "public": "dist/pruebas",
+      "site": "pruebas-354cc",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -12,6 +13,10 @@
         {
           "source": "**",
           "destination": "/index.html"
+        },
+        {
+          "source": "/deleteUser",
+          "function": "deleteUser"
         }
       ]
     }

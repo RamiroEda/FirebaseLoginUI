@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { FirebaseService } from 'src/app/services/firebase/firebase.service';
 import * as $ from 'jquery';
 import { Router } from '@angular/router';
 import { User } from 'firebase';
-import { async } from '@angular/core/testing';
 import { UserInfo } from 'src/app/models/user-info';
+import { AngularFireFunctions } from '@angular/fire/functions';
+import { AngularFireAuth } from '@angular/fire/auth';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFireStorage } from '@angular/fire/storage';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-index',
@@ -12,25 +15,19 @@ import { UserInfo } from 'src/app/models/user-info';
   styleUrls: ['./index.component.scss']
 })
 export class IndexComponent implements OnInit {
-  private userInfo : UserInfo;
+  userInfo : UserInfo;
   private sessionId : string = Date.now().toString();
 
-  constructor(private firebaseService : FirebaseService, private router : Router) {
-    firebaseService.setOnAuthChangeListener((user : User)=>{
-      if(user){
-        this.ngOnInit();
-      }else{
-        router.navigateByUrl("/login");
-      }
-    });
-  }
+  constructor(private router : Router, 
+    private funs : AngularFireFunctions, 
+    private auth : AngularFireAuth,
+    private storage: AngularFireStorage,
+    private firestore: AngularFirestore) {}
 
   ngOnInit(): void {
-    if(this.firebaseService.user){
-      this.initAll();
-    }
+    this.initAll();
 
-    $("#fileUpload").change(() => {
+    $("#fileUpload").off("change").change((e : Event) => {
       this.sessionId = Date.now().toString();
       this.uploadImage();
     });
@@ -40,38 +37,41 @@ export class IndexComponent implements OnInit {
     await this.getUserInfo();
     this.initProfilePicture();
     this.initName();
-    this.initBackground();
   }
 
   private async getUserInfo(){
-    if(this.firebaseService.user){
-      this.userInfo = (await this.firebaseService.firebase.firestore().collection('users').doc(
-        this.firebaseService.firebase.auth().currentUser.uid
-      ).get()).data() as UserInfo
+    if(this.auth.currentUser){
+      while(true){
+        try{
+          const values = (await this.firestore.collection('users').doc(
+            (await this.auth.currentUser).uid
+          ).get().toPromise()).data()
+    
+          this.userInfo = {
+            name: values.name,
+            imageUrl : await this.storage.ref(values.imageUrl).getDownloadURL().toPromise(),
+            backgroundImage: await this.storage.ref(values.backgroundImage).getDownloadURL().toPromise(),
+          }
+          break;
+        }catch(e){
+          console.log(e);
+          
+        }
+      }
     }
   }
 
   private async initProfilePicture(){
-    if(this.firebaseService.user.photoURL){
-      $("#user-pic").attr("src", this.firebaseService.user.photoURL);
-    }else if(this.userInfo){
-      const pic = await this.firebaseService.firebase.storage().refFromURL(this.userInfo.imageUrl).getDownloadURL();
-      $("#user-pic").attr("src", pic);
+    const url = (await this.auth.currentUser).photoURL
+    if(url){
+      this.userInfo.imageUrl = url;
     }
   }
 
-  private initName(){
-    if(this.firebaseService.user.displayName){
-      $("#username").text(this.firebaseService.user.displayName);
-    }else if(this.userInfo){
-      $("#username").text(this.userInfo.name);
-    }
-  }
-
-  private async initBackground(){
-    if(this.userInfo){
-      const pic = await this.firebaseService.firebase.storage().refFromURL(this.userInfo.backgroundImage).getDownloadURL();
-      $("#bg").css("background-image", `url(${pic})`);
+  async initName(){
+    const name = (await this.auth.currentUser).displayName;
+    if(name){
+      this.userInfo.name = name;
     }
   }
 
@@ -104,8 +104,8 @@ export class IndexComponent implements OnInit {
     if (input.files && input.files[0]) {
       const name = this.sessionId;
       const ext = input.files[0].name.split('.').pop();
-      this.firebaseService.firebase.storage().ref(`uploads/${name}.${ext}`).put(input.files[0]).then((res)=> {
-        console.log("uploaded");
+      this.storage.ref(`uploads/${name}.${ext}`).put(input.files[0]).then((res)=> {
+        console.log("uploaded", res);
         this.waitForFilter(name, ext);
       });
     }
@@ -113,16 +113,15 @@ export class IndexComponent implements OnInit {
 
   private async waitForFilter(name: string, ext : string){
     const input = $("#fileUpload")[0];
-    const ref = this.firebaseService.firebase.storage();
-    
+
     while(true){
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       try{
-        const url = await ref.ref(`gen/${name}.${ext}`).getDownloadURL();
+        const url = await this.storage.ref(`gen/${name}.${ext}`).getDownloadURL().toPromise();
         $("#imgResultPreview").css("background-image", `url(${url})`);
         console.log("file set");
         break;
       }catch(e){
-        await new Promise((resolve) => setTimeout(resolve, 5000));
         console.log("waiting file");
       }
     }
@@ -130,11 +129,30 @@ export class IndexComponent implements OnInit {
     
   }
 
-  deleteUser(){
-    this.firebaseService.firebase.auth().currentUser.delete();
+  async deleteUser(){
+    // TODO: Error con CORS
+    // const deleteUser = this.funs.httpsCallable("deleteUser"); 
+    // const res = await deleteUser({
+    //   uid: (await this.auth.currentUser).uid
+    // }).toPromise()
+
+    // if(res.success){
+    //   this.logOut();
+    // }
+
+    $.post("https://us-central1-pruebas-354cc.cloudfunctions.net/deleteUser", {
+      uid: (await this.auth.currentUser).uid
+    }).done((res) => {
+      console.log(res);
+      
+      if(res.success == true){
+        this.logOut();
+      }
+    });
   }
 
-  logOut(){
-    this.firebaseService.firebase.auth().signOut();
+  async logOut(){
+    await this.auth.signOut();
+    this.router.navigateByUrl('/login');
   }
 }
